@@ -38,6 +38,17 @@ local function draw_arm(dc)
   dc:DrawLine(right, 10, right, 20)
   
   if type(arm.holding) == 'string' then
+    local color = wx.wxWHITE_BRUSH
+        
+    if arm.holding == 'r' or arm.holding == 'red' then
+      color = wx.wxRED_BRUSH
+    elseif arm.holding == 'g' or arm.holding == 'green' then
+      color = wx.wxGREEN_BRUSH
+    elseif arm.holding == 'b' or arm.holding == 'blue' then
+      color = wx.wxBLUE_BRUSH
+    end
+    
+    dc:SetBrush(color)
     dc:DrawRectangle(left + 1, 11, station_width - 10 - 1, station_width - 10)
   end
 end
@@ -54,6 +65,17 @@ local function draw_assembly_line(dc)
     local stack = robot_arm.assembly_line[i]
     if type(stack) == 'table' then
       for level, block in ipairs(stack) do
+        local color = wx.wxWHITE_BRUSH
+        
+        if block == 'r' or block == 'red' then
+          color = wx.wxRED_BRUSH
+        elseif block == 'g' or block == 'green' then
+          color = wx.wxGREEN_BRUSH
+        elseif block == 'b' or block == 'blue' then
+          color = wx.wxBLUE_BRUSH
+        end
+        
+        dc:SetBrush(color)
         dc:DrawRectangle(left + 5, 200 - block_height * level, block_width, block_height)
       end
     end

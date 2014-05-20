@@ -1,6 +1,12 @@
 require 'robot_arm'
 
-robot_arm.assembly_line = { {'r', 'g'}, {'g'}, {'b'}, {}, {'y'} }
+robot_arm.assembly_line = {
+  {'r', 'g'},
+  {'g'},
+  {'b'},
+  {},
+  {'w'}
+}
 
 
 robot_arm:move_right()
