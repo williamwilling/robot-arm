@@ -107,4 +107,9 @@ function robot_arm:grab()
   robot_arm.assembly_line[arm.position + 1] = nil
 end
 
+function robot_arm:drop()
+  robot_arm.assembly_line[arm.position + 1] = arm.holding
+  arm.holding = nil
+end
+
 wx.wxGetApp():MainLoop()
