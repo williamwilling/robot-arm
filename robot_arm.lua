@@ -34,6 +34,10 @@ local function draw_arm(dc)
   dc:DrawLine(left, 10, right, 10)
   dc:DrawLine(left, 10, left, 20)
   dc:DrawLine(right, 10, right, 20)
+  
+  if type(arm.holding) == 'string' then
+    dc:DrawRectangle(left + 1, 11, station_width - 10 - 1, station_width - 10)
+  end
 end
 
 local function draw_assembly_line(dc)
@@ -71,6 +75,8 @@ robot_arm = {}
 robot_arm.assembly_line = {}
 
 function robot_arm:move_right()
+  local old = arm.position
+  
   for i = arm.position, arm.position + 1, 0.01 do
     arm.position = i
     
@@ -78,9 +84,13 @@ function robot_arm:move_right()
     frame:Update()
     wx.wxMilliSleep(10)
   end
+  
+  arm.position = old + 1
 end
 
 function robot_arm:move_left()
+  local old = arm.position
+  
   for i = arm.position, arm.position - 1, -0.01 do
     arm.position = i
     
@@ -88,6 +98,13 @@ function robot_arm:move_left()
     frame:Update()
     wx.wxMilliSleep(10)
   end
+  
+  arm.position = old + 1
+end
+
+function robot_arm:grab()
+  arm.holding = robot_arm.assembly_line[arm.position + 1]
+  robot_arm.assembly_line[arm.position + 1] = nil
 end
 
 wx.wxGetApp():MainLoop()
