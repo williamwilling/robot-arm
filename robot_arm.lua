@@ -143,6 +143,10 @@ function robot_arm:drop()
   arm.holding = nil
 end
 
+function robot_arm:scan()
+  return arm.holding
+end
+
 function robot_arm:wait(ms)
   if type(ms) == 'number' then
     wx.wxMilliSleep(ms)
