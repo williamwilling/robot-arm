@@ -143,4 +143,14 @@ function robot_arm:drop()
   arm.holding = nil
 end
 
+function robot_arm:wait(ms)
+  if type(ms) == 'number' then
+    wx.wxMilliSleep(ms)
+  else
+    while true do
+      wx.wxMilliSleep(1000)
+    end
+  end
+end
+
 wx.wxGetApp():MainLoop()
