@@ -24,6 +24,8 @@ local frame = wx.wxFrame(
   wx.wxDEFAULT_FRAME_STYLE)
 
 local station_width = 50
+local block_width = 40
+local block_height = 40
 
 local function draw_arm(dc)
   local left = arm.position * station_width + 5
@@ -49,8 +51,11 @@ local function draw_assembly_line(dc)
     dc:DrawLine(left, 195, left, 200)
     dc:DrawLine(right, 195, right, 200)
     
-    if type(robot_arm.assembly_line[i]) == 'string' then
-      dc:DrawRectangle(left + 5, 200 - station_width + 10, station_width - 10, station_width - 10)
+    local stack = robot_arm.assembly_line[i]
+    if type(stack) == 'table' then
+      for level, block in ipairs(stack) do
+        dc:DrawRectangle(left + 5, 200 - block_height * level, block_width, block_height)
+      end
     end
   end
 end
@@ -103,12 +108,14 @@ function robot_arm:move_left()
 end
 
 function robot_arm:grab()
-  arm.holding = robot_arm.assembly_line[arm.position + 1]
-  robot_arm.assembly_line[arm.position + 1] = nil
+  local stack = robot_arm.assembly_line[arm.position + 1]
+  arm.holding = stack[#stack]
+  stack[#stack] = nil
 end
 
 function robot_arm:drop()
-  robot_arm.assembly_line[arm.position + 1] = arm.holding
+  local stack = robot_arm.assembly_line[arm.position + 1]
+  table.insert(stack, arm.holding)
   arm.holding = nil
 end
 
