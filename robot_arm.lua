@@ -20,12 +20,14 @@ local frame = wx.wxFrame(
   wx.wxID_ANY,
   "Robot Arm",
   wx.wxDefaultPosition,
-  wx.wxSize(450, 450),
+  wx.wxSize(550, 450),
   wx.wxDEFAULT_FRAME_STYLE)
 
 local station_width = 50
+local station_count = 10
 local block_width = 40
 local block_height = 40
+local line_position = 400
 
 local function draw_arm(dc)
   local left = arm.position * station_width + 5
@@ -54,13 +56,13 @@ local function draw_arm(dc)
 end
 
 local function draw_assembly_line(dc)
-  for i = 1, 10 do
+  for i = 1, station_count do
     local left = (i - 1) * station_width
     local right = left + station_width
     
-    dc:DrawLine(left, 200, right, 200)
-    dc:DrawLine(left, 195, left, 200)
-    dc:DrawLine(right, 195, right, 200)
+    dc:DrawLine(left, line_position, right, line_position)
+    dc:DrawLine(left, line_position - 5, left, line_position)
+    dc:DrawLine(right, line_position - 5, right, line_position)
     
     local stack = robot_arm.assembly_line[i]
     if type(stack) == 'table' then
@@ -76,7 +78,7 @@ local function draw_assembly_line(dc)
         end
         
         dc:SetBrush(color)
-        dc:DrawRectangle(left + 5, 200 - block_height * level, block_width, block_height)
+        dc:DrawRectangle(left + 5, line_position - block_height * level, block_width, block_height)
       end
     end
   end
