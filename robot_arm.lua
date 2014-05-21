@@ -128,19 +128,25 @@ function robot_arm:move_left()
     wx.wxMilliSleep(10)
   end
   
-  arm.position = old + 1
+  arm.position = old - 1
 end
 
 function robot_arm:grab()
   local stack = robot_arm.assembly_line[arm.position + 1]
   arm.holding = stack[#stack]
   stack[#stack] = nil
+  
+  frame:Refresh()
+  frame:Update()
 end
 
 function robot_arm:drop()
   local stack = robot_arm.assembly_line[arm.position + 1]
   table.insert(stack, arm.holding)
   arm.holding = nil
+  
+  frame:Refresh()
+  frame:Update()
 end
 
 function robot_arm:scan()
