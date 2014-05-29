@@ -1,3 +1,8 @@
+-- Since the main scripts (i.e. the script that requires the robot_arm library)
+-- is called as a coroutine, we need to enable debugging of coroutines,
+-- otherwise you can't debug the main script.
+require('mobdebug').coro()
+
 -- The wxLua-library nilifies the print function, so we need to store the print
 -- function in a temporary variable and restore it after wxLua is loaded.
 local print_backup = print
@@ -11,19 +16,50 @@ print = print_backup
 -- loading of the robot_arm library completes, we need to do it ourselves here.
 package.loaded.robot_arm = true
 
-local t = debug.getinfo(3)
+-- The script for the robot_arm library (i.e. the script you are reading now)
+-- won't return to its caller, because at the end, we will start the event loop
+-- for the window that shows the robot arm and that event loop won't exit.
+-- We still need to run the caller's code, though. To do that, we get the
+-- code from the caller and turn it into a coroutine. Later on, we'll run the
+-- coroutine inside the event loop.
+local info = debug.getinfo(3)
+
+if info == nil then
+  print("Since robot_arm.lua contains a library and not a program, you should")
+  print("not run it directly. Instead, create a new Lua-file and use the")
+  print("require-function to create a program that uses the robot_arm")
+  print("library. For example:\n")
+  print("    require 'robot_arm'\n")
+  print("    robot_arm.grab()")
+  print("    robot_arm.move_right()")
+  print("    robot_arm.drop()\n")
+  
+  return
+end
+
+local main = coroutine.create(info.func)
+
+local frame
+local next_function
+
+local function suspend_event_loop()
+  -- here we are inside the event loop
+  coroutine.resume(main)
+  
+  -- here we are inside the event loop
+  next_function()
+end
+
+local function resume_event_loop()
+  -- here we are inside the main script
+  coroutine.yield()
+  
+  -- here we are inside the main script
+end
 
 local arm = {
   position = 0
 }
-
-local frame = wx.wxFrame(
-  wx.NULL,
-  wx.wxID_ANY,
-  "Robot Arm",
-  wx.wxDefaultPosition,
-  wx.wxSize(550, 450),
-  wx.wxDEFAULT_FRAME_STYLE)
 
 local station_width = 50
 local station_count = 10
@@ -94,29 +130,49 @@ local function paint()
   dc:delete()
 end
 
-frame:Show(true)
-frame:Connect(wx.wxEVT_PAINT, paint)
-
-frame:Connect(wx.wxEVT_ACTIVATE, function()
-    t.func()
-    os.exit()
-  end)
-
 robot_arm = {}
 robot_arm.assembly_line = {}
 
-function robot_arm:move_right()
-  local old = arm.position
+local function move_right()
+  local timer = wx.wxTimer(frame)
+  local count = 0
+  local new_position = arm.position + 1
   
-  for i = arm.position, arm.position + 1, 0.01 do
-    arm.position = i
-    
+  local frames = 25
+  
+  frame:Connect(wx.wxEVT_TIMER, function()
+    arm.position = arm.position + 1 / frames
     frame:Refresh()
     frame:Update()
-    wx.wxMilliSleep(10)
-  end
+    
+    count = count + 1
+    if count == frames then
+      arm.position = new_position
+      frame:Disconnect(wx.wxEVT_TIMER)
+      
+      next_function = nil
+      suspend_event_loop()
+    end
+  end)
+
+  timer:Start(1000 / frames)
+end
+
+function robot_arm:move_right()
+  next_function = move_right
   
-  arm.position = old + 1
+  --[[
+  frame:Connect(wx.wxEVT_IDLE, function()
+    print(coroutine.status(main))
+    frame:Disconnect(wx.wxEVT_IDLE)
+    
+    if next_function ~= nil then
+      next_function()
+    end
+  end)
+--]]
+  
+  resume_event_loop()
 end
 
 function robot_arm:move_left()
@@ -165,4 +221,29 @@ function robot_arm:wait(ms)
   end
 end
 
+frame = wx.wxFrame(
+  wx.NULL,
+  wx.wxID_ANY,
+  "Robot Arm",
+  wx.wxDefaultPosition,
+  wx.wxSize(550, 450),
+  wx.wxDEFAULT_FRAME_STYLE)
+
+frame:Show(true)
+frame:Connect(wx.wxEVT_PAINT, paint)
+
+frame:Connect(wx.wxEVT_ACTIVATE, function()
+  frame:Disconnect(wx.wxEVT_ACTIVATE)
+  suspend_event_loop()
+end)
+
+--[[
+frame:Connect(wx.wxEVT_IDLE, function()
+  frame:Disconnect(wx.wxEVT_IDLE)
+  
+  if next_function ~= nil then
+    next_function()
+  end
+end)
+--]]
 wx.wxGetApp():MainLoop()

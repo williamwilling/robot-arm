@@ -13,16 +13,8 @@ robot_arm.assembly_line = {
   {}
 }
 
+print('a')
+robot_arm:move_right()
+print('b')
 robot_arm:move_right()
 robot_arm:move_right()
-print(robot_arm:scan())
-robot_arm:grab()
-print(robot_arm:scan())
-
-robot_arm:move_right()
-print(robot_arm:scan())
-robot_arm:drop()
-print(robot_arm:scan())
-
-robot_arm:move_left()
-robot_arm:wait()
