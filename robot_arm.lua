@@ -1,7 +1,14 @@
+-- The wxLua-library nilifies the print function, so we need to store the print
+-- function in a temporary variable and restore it after wxLua is loaded.
 local print_backup = print
 require 'wx'
 print = print_backup
 
+-- Since the robot_arm library calls the chunk that has required the robot_arm
+-- library, the robot_arm library will be required twice. To prevent this, we
+-- mark the robot_arm library as loaded. Normally, Lua does this automatically
+-- at the end of the library script, but since we call the parent chunk before
+-- loading of the robot_arm library completes, we need to do it ourselves here.
 package.loaded.robot_arm = true
 
 local t = debug.getinfo(3)
