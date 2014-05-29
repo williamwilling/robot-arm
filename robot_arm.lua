@@ -1,13 +1,8 @@
-local print = print
+local print_backup = print
 require 'wx'
-_G.print = print
+print = print_backup
 
-local require = require
-_G.require = function(modname)
-  if modname ~= 'robot_arm' then
-    require(modname)
-  end
-end
+package.loaded.robot_arm = true
 
 local t = debug.getinfo(3)
 
