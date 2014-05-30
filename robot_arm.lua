@@ -40,22 +40,6 @@ end
 local main = coroutine.create(info.func)
 
 local frame
-local next_function
-
-local function suspend_event_loop()
-  -- here we are inside the event loop
-  coroutine.resume(main)
-  
-  -- here we are inside the event loop
-  next_function()
-end
-
-local function resume_event_loop()
-  -- here we are inside the main script
-  coroutine.yield()
-  
-  -- here we are inside the main script
-end
 
 local arm = {
   position = 0
@@ -133,46 +117,50 @@ end
 robot_arm = {}
 robot_arm.assembly_line = {}
 
-local function move_right()
-  local timer = wx.wxTimer(frame)
-  local count = 0
-  local new_position = arm.position + 1
-  
-  local frames = 25
-  
-  frame:Connect(wx.wxEVT_TIMER, function()
-    arm.position = arm.position + 1 / frames
-    frame:Refresh()
-    frame:Update()
+function animate(start_value, end_value, duration)
+  return coroutine.create(function()
+    local diff = end_value - start_value
+    local stop_watch = wx.wxStopWatch()
+    stop_watch:Start()
     
-    count = count + 1
-    if count == frames then
-      arm.position = new_position
-      frame:Disconnect(wx.wxEVT_TIMER)
-      
-      next_function = nil
-      suspend_event_loop()
+    local fraction = 0
+    
+    while fraction < 1 do
+      coroutine.yield(start_value + diff * fraction)
+      fraction = math.min(1, stop_watch:Time() / duration)
     end
+    
+    return end_value
   end)
+end
 
-  timer:Start(1000 / frames)
+local function loop_non_blocking(func)
+  local timer = wx.wxTimer(frame)
+  local frame_time = 33
+  
+  on_timer = function()
+    if func() then
+      timer:Start(frame_time, true)
+    else
+      on_timer = nil
+      coroutine.resume(main)
+    end
+  end
+
+  timer:Start(frame_time, true)
+  coroutine.yield()
 end
 
 function robot_arm:move_right()
-  next_function = move_right
+  local position = animate(arm.position, arm.position + 1, 1000)
   
-  --[[
-  frame:Connect(wx.wxEVT_IDLE, function()
-    print(coroutine.status(main))
-    frame:Disconnect(wx.wxEVT_IDLE)
+  loop_non_blocking(function()
+    _, arm.position = coroutine.resume(position)
+    frame:Refresh()
+    --frame:Update()
     
-    if next_function ~= nil then
-      next_function()
-    end
+    return coroutine.status(position) ~= 'dead'
   end)
---]]
-  
-  resume_event_loop()
 end
 
 function robot_arm:move_left()
@@ -234,16 +222,14 @@ frame:Connect(wx.wxEVT_PAINT, paint)
 
 frame:Connect(wx.wxEVT_ACTIVATE, function()
   frame:Disconnect(wx.wxEVT_ACTIVATE)
-  suspend_event_loop()
+  coroutine.resume(main)
 end)
 
---[[
-frame:Connect(wx.wxEVT_IDLE, function()
-  frame:Disconnect(wx.wxEVT_IDLE)
-  
-  if next_function ~= nil then
-    next_function()
+frame:Connect(wx.wxEVT_TIMER, function()
+  if type(on_timer) == 'function' then
+    on_timer()
   end
 end)
---]]
+
 wx.wxGetApp():MainLoop()
+os.exit()
