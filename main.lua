@@ -13,10 +13,9 @@ robot_arm.assembly_line = {
   {}
 }
 
-print('a')
-robot_arm:move_right()
-print('b')
-robot_arm:move_left()
-robot_arm:move_right()
-robot_arm:move_left()
 robot_arm:grab()
+robot_arm:move_right()
+robot_arm:move_left()
+robot_arm:move_right()
+robot_arm:move_left()
+robot_arm:move_right()

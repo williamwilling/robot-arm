@@ -1,4 +1,4 @@
--- Since the main scripts (i.e. the script that requires the robot_arm library)
+-- Since the main script (i.e. the script that requires the robot_arm library)
 -- is called as a coroutine, we need to enable debugging of coroutines,
 -- otherwise you can't debug the main script.
 require('mobdebug').coro()
@@ -151,12 +151,26 @@ local function loop_non_blocking(func)
   coroutine.yield()
 end
 
+local function refresh_arm(erase_background)
+  local left = arm.position * station_width + 4
+  local width = station_width - 8
+  local top = 0
+  local height = 20
+  
+  if arm.holding ~= nil then
+    height = block_height + 11
+  end
+  
+  frame:Refresh(erase_background, wx.wxRect(left, top, width, height))
+end
+
 function robot_arm:move_right()
   local position = animate(arm.position, arm.position + 1, 1000)
   
   loop_non_blocking(function()
+    refresh_arm(true)
     _, arm.position = coroutine.resume(position)
-    frame:Refresh()
+    refresh_arm(false)
     
     return coroutine.status(position) ~= 'dead'
   end)
