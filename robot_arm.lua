@@ -157,24 +157,20 @@ function robot_arm:move_right()
   loop_non_blocking(function()
     _, arm.position = coroutine.resume(position)
     frame:Refresh()
-    --frame:Update()
     
     return coroutine.status(position) ~= 'dead'
   end)
 end
 
 function robot_arm:move_left()
-  local old = arm.position
+  local position = animate(arm.position, arm.position - 1, 1000)
   
-  for i = arm.position, arm.position - 1, -0.01 do
-    arm.position = i
-    
+  loop_non_blocking(function()
+    _, arm.position = coroutine.resume(position)
     frame:Refresh()
-    frame:Update()
-    wx.wxMilliSleep(10)
-  end
-  
-  arm.position = old - 1
+    
+    return coroutine.status(position) ~= 'dead'
+  end)
 end
 
 function robot_arm:grab()
