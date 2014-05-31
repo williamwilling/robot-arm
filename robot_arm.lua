@@ -50,14 +50,15 @@ local station_width = 50
 local station_count = 10
 local block_width = 40
 local block_height = 40
-local line_position = 400
 local arm_height = 10
 local hand_height = 10
+local level_count = 4
+local line_position = arm_height + level_count * block_height
 
 local function draw_arm(dc)
-  local left = arm.position * station_width + 5
-  local mid = left + (station_width / 2 - 5)
-  local right = mid + (station_width / 2 - 5)
+  local mid = (0.5 + arm.position) * station_width
+  local left = mid - block_width / 2 - 1
+  local right = mid + block_width / 2
   
   local top = arm_height + arm.level * block_height
 
@@ -78,7 +79,7 @@ local function draw_arm(dc)
     end
     
     dc:SetBrush(color)
-    dc:DrawRectangle(left + 1, top + 1, station_width - 10 - 1, block_height)
+    dc:DrawRectangle(left + 1, top + 1, block_width, block_height)
   end
 end
 
@@ -157,10 +158,10 @@ local function loop_non_blocking(func)
 end
 
 local function refresh_arm(erase_background)
-  local left = arm.position * station_width + 4
-  local width = station_width - 8
+  local left = arm.position * station_width
+  local width = station_width
   local top = 0
-  local height = arm_height + (arm.level) * block_height + hand_height
+  local height = arm_height + arm.level * block_height + hand_height
   
   if arm.holding ~= nil then
     height = height + block_height
@@ -193,7 +194,8 @@ function robot_arm:move_left()
 end
 
 function robot_arm:grab()
-  local level = animate(arm.level, arm.level + 8, 1000)
+  local stack_height = #robot_arm.assembly_line[arm.position + 1]
+  local level = animate(0, level_count - stack_height, 1000)
   
   loop_non_blocking(function()
     refresh_arm(true)
@@ -207,7 +209,7 @@ function robot_arm:grab()
   arm.holding = stack[#stack]
   stack[#stack] = nil
   
-  level = animate(arm.level, arm.level - 8, 1000)
+  level = animate(level_count - stack_height, 0, 1000)
   
   loop_non_blocking(function()
     refresh_arm(true)
