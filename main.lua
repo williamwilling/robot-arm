@@ -13,8 +13,28 @@ robot_arm.assembly_line = {
   {}
 }
 
-robot_arm:grab()
-robot_arm:move_right()
-robot_arm:move_right()
---robot_arm:move_right()
-robot_arm:drop()
+while true do
+  direction = robot_arm.move_right
+  
+  if math.random() > 0.5 then
+    direction = robot_arm.move_left
+  end
+  
+  for i = 1, math.random(5) do
+    direction(robot_arm)
+  end
+  
+  robot_arm:grab()
+  
+  direction = robot_arm.move_right
+  
+  if math.random() > 0.5 then
+    direction = robot_arm.move_left
+  end
+  
+  for i = 1, math.random(5) do
+    direction(robot_arm)
+  end
+  
+  robot_arm:drop()
+end

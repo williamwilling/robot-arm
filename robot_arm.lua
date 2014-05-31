@@ -183,6 +183,10 @@ function animate_arm(property_name, start_value, end_value, duration)
 end
 
 function robot_arm:move_right()
+  if arm.position >= station_count - 1 then
+    return
+  end
+  
   local position = animate(arm.position, arm.position + 1, 1000)
   
   loop_non_blocking(function()
@@ -195,6 +199,10 @@ function robot_arm:move_right()
 end
 
 function robot_arm:move_left()
+  if arm.position <= 0 then
+    return
+  end
+  
   local position = animate(arm.position, arm.position - 1, 1000)
   
   loop_non_blocking(function()
