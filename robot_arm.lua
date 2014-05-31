@@ -42,7 +42,8 @@ local main = coroutine.create(info.func)
 local frame
 
 local arm = {
-  position = 0
+  position = 0,
+  level = 0
 }
 
 local station_width = 50
@@ -50,16 +51,20 @@ local station_count = 10
 local block_width = 40
 local block_height = 40
 local line_position = 400
+local arm_height = 10
+local hand_height = 10
 
 local function draw_arm(dc)
   local left = arm.position * station_width + 5
   local mid = left + (station_width / 2 - 5)
   local right = mid + (station_width / 2 - 5)
+  
+  local top = arm_height + arm.level * block_height
 
-  dc:DrawLine(mid, 0, mid, 10)
-  dc:DrawLine(left, 10, right, 10)
-  dc:DrawLine(left, 10, left, 20)
-  dc:DrawLine(right, 10, right, 20)
+  dc:DrawLine(mid, 0, mid, top)
+  dc:DrawLine(left, top, right, top)
+  dc:DrawLine(left, top, left, top + hand_height)
+  dc:DrawLine(right, top, right, top + hand_height)
   
   if type(arm.holding) == 'string' then
     local color = wx.wxWHITE_BRUSH
@@ -73,7 +78,7 @@ local function draw_arm(dc)
     end
     
     dc:SetBrush(color)
-    dc:DrawRectangle(left + 1, 11, station_width - 10 - 1, station_width - 10)
+    dc:DrawRectangle(left + 1, top + 1, station_width - 10 - 1, block_height)
   end
 end
 
@@ -155,10 +160,10 @@ local function refresh_arm(erase_background)
   local left = arm.position * station_width + 4
   local width = station_width - 8
   local top = 0
-  local height = 20
+  local height = arm_height + (arm.level) * block_height + hand_height
   
   if arm.holding ~= nil then
-    height = block_height + 11
+    height = height + block_height
   end
   
   frame:Refresh(erase_background, wx.wxRect(left, top, width, height))
@@ -188,12 +193,29 @@ function robot_arm:move_left()
 end
 
 function robot_arm:grab()
+  local level = animate(arm.level, arm.level + 8, 1000)
+  
+  loop_non_blocking(function()
+    refresh_arm(true)
+    _, arm.level = coroutine.resume(level)
+    refresh_arm(false)
+    
+    return coroutine.status(level) ~= 'dead'
+  end)
+  
   local stack = robot_arm.assembly_line[arm.position + 1]
   arm.holding = stack[#stack]
   stack[#stack] = nil
   
-  frame:Refresh()
-  frame:Update()
+  level = animate(arm.level, arm.level - 8, 1000)
+  
+  loop_non_blocking(function()
+    refresh_arm(true)
+    _, arm.level = coroutine.resume(level)
+    refresh_arm(false)
+    
+    return coroutine.status(level) ~= 'dead'
+  end)
 end
 
 function robot_arm:drop()
