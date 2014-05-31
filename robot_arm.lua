@@ -46,6 +46,7 @@ local arm = {
   level = 0
 }
 
+local delay = 2000
 local station_width = 50
 local station_count = 10
 local block_width = 40
@@ -187,7 +188,7 @@ function robot_arm:move_right()
     return
   end
   
-  local position = animate(arm.position, arm.position + 1, 1000)
+  local position = animate(arm.position, arm.position + 1, delay)
   
   loop_non_blocking(function()
     refresh_arm(true)
@@ -203,7 +204,7 @@ function robot_arm:move_left()
     return
   end
   
-  local position = animate(arm.position, arm.position - 1, 1000)
+  local position = animate(arm.position, arm.position - 1, delay)
   
   loop_non_blocking(function()
     _, arm.position = coroutine.resume(position)
@@ -215,24 +216,30 @@ end
 
 function robot_arm:grab()
   local stack = robot_arm.assembly_line[arm.position + 1]
+  local grab_level = level_count - #stack
   
-  animate_arm('level', 0, level_count - #stack, 1000)
+  if #stack == 0 then
+    grab_level = grab_level - 1
+  end
+  
+  animate_arm('level', 0, grab_level, delay)
   
   arm.holding = stack[#stack]
   stack[#stack] = nil
   
-  animate_arm('level', level_count - (#stack + 1), 0, 1000)
+  animate_arm('level', grab_level, 0, delay)
 end
 
 function robot_arm:drop()
   local stack = robot_arm.assembly_line[arm.position + 1]
+  local drop_level = level_count - #stack - 1
   
-  animate_arm('level', 0, level_count - (#stack + 1), 1000)
+  animate_arm('level', 0, drop_level, delay)
   
   table.insert(stack, arm.holding)
   arm.holding = nil
   
-  animate_arm('level', level_count - #stack, 0, 1000)
+  animate_arm('level', drop_level, 0, delay)
 end
 
 function robot_arm:scan()

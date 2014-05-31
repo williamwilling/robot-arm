@@ -1,7 +1,7 @@
 require 'robot_arm'
 
 robot_arm.assembly_line = {
-  { 'red', 'green' },
+  {  },
   { 'green' },
   { 'blue', 'white', 'blue' },
   {},
@@ -12,6 +12,8 @@ robot_arm.assembly_line = {
   {},
   {}
 }
+
+robot_arm:drop()
 
 while true do
   direction = robot_arm.move_right
