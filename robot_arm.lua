@@ -52,7 +52,7 @@ local block_width = 40
 local block_height = 40
 local arm_height = 10
 local hand_height = 10
-local level_count = 4
+local level_count = 8
 local line_position = arm_height + level_count * block_height
 
 local function draw_arm(dc)
@@ -170,6 +170,18 @@ local function refresh_arm(erase_background)
   frame:Refresh(erase_background, wx.wxRect(left, top, width, height))
 end
 
+function animate_arm(property_name, start_value, end_value, duration)
+  local value = animate(start_value, end_value, duration)
+  
+  loop_non_blocking(function()
+    refresh_arm(true)
+    _, arm[property_name] = coroutine.resume(value)
+    refresh_arm(false)
+    
+    return coroutine.status(value) ~= 'dead'
+  end)
+end
+
 function robot_arm:move_right()
   local position = animate(arm.position, arm.position + 1, 1000)
   
@@ -194,39 +206,25 @@ function robot_arm:move_left()
 end
 
 function robot_arm:grab()
-  local stack_height = #robot_arm.assembly_line[arm.position + 1]
-  local level = animate(0, level_count - stack_height, 1000)
-  
-  loop_non_blocking(function()
-    refresh_arm(true)
-    _, arm.level = coroutine.resume(level)
-    refresh_arm(false)
-    
-    return coroutine.status(level) ~= 'dead'
-  end)
-  
   local stack = robot_arm.assembly_line[arm.position + 1]
+  
+  animate_arm('level', 0, level_count - #stack, 1000)
+  
   arm.holding = stack[#stack]
   stack[#stack] = nil
   
-  level = animate(level_count - stack_height, 0, 1000)
-  
-  loop_non_blocking(function()
-    refresh_arm(true)
-    _, arm.level = coroutine.resume(level)
-    refresh_arm(false)
-    
-    return coroutine.status(level) ~= 'dead'
-  end)
+  animate_arm('level', level_count - (#stack + 1), 0, 1000)
 end
 
 function robot_arm:drop()
   local stack = robot_arm.assembly_line[arm.position + 1]
+  
+  animate_arm('level', 0, level_count - (#stack + 1), 1000)
+  
   table.insert(stack, arm.holding)
   arm.holding = nil
   
-  frame:Refresh()
-  frame:Update()
+  animate_arm('level', level_count - #stack, 0, 1000)
 end
 
 function robot_arm:scan()
