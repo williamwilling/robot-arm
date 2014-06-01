@@ -276,12 +276,32 @@ function robot_arm:wait(ms)
   frame:Refresh()
 end
 
+-- Predefined levels.
+local levels = {
+  ['exercise 1'] = { {}, { 'red' } },
+  ['exercise 2'] = { { 'blue' }, {}, {}, {}, { 'blue' }, {}, {}, { 'blue' } }
+}
+
+function robot_arm:load_level(name)
+  local level = levels[name]
+  
+  if type(level) == 'table' then
+    robot_arm.assembly_line = level
+  end
+  
+  for i = 1, station_count do
+    if robot_arm.assembly_line[i] == nil then
+      robot_arm.assembly_line[i] = {}
+    end
+  end
+end
+
 frame = wx.wxFrame(
   wx.NULL,
   wx.wxID_ANY,
   "Robot Arm",
   wx.wxDefaultPosition,
-  wx.wxSize(550, 450),
+  wx.wxSize(18 + station_count * station_width, arm_height + (level_count + 1) * block_height),
   wx.wxDEFAULT_FRAME_STYLE)
 
 frame:Show(true)
