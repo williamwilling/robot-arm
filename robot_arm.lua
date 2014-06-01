@@ -126,6 +126,10 @@ robot_arm = {
   assembly_line = {}
 }
 
+for i = 1, station_count do
+  table.insert(robot_arm.assembly_line, {})
+end
+
 function animate(start_value, end_value, duration)
   local actual_duration = duration * 0.5
   
@@ -279,8 +283,17 @@ end
 -- Predefined levels.
 local levels = {
   ['exercise 1'] = { {}, { 'red' } },
-  ['exercise 2'] = { { 'blue' }, {}, {}, {}, { 'blue' }, {}, {}, { 'blue' } }
+  ['exercise 2'] = { { 'blue' }, {}, {}, {}, { 'blue' }, {}, {}, { 'blue' } },
+  ['exercise 3'] = { { 'white', 'white', 'white', 'white' } },
+  ['exercise 4'] = { { 'blue', 'white', 'green' } },
+  ['exercise 5'] = { {}, { 'red', 'red', 'red', 'red', 'red', 'red', 'red' } },
+  ['exercise 6'] = { { 'red' }, { 'blue' }, { 'white' }, { 'green' }, { 'green' }, { 'blue' }, { 'red' }, { 'white' } },
+  ['exercise 7'] = { {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' }, {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' }, {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' }, {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' }, {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' } },
+  ['exercise 9'] = { { 'blue' }, { 'green', 'green' }, { 'white', 'white', 'white' }, { 'red', 'red', 'red', 'red' } },
+  ['exercise 10'] = { { 'green' }, { 'blue' }, { 'white' }, { 'red' }, { 'blue' } },
 }
+
+levels['exercise 8'] = levels['exercise 5']
 
 function robot_arm:load_level(name)
   local level = levels[name]
