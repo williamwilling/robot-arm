@@ -133,6 +133,10 @@ function animate(start_value, end_value, duration)
     actual_duration = duration * (1 - math.min(1, robot_arm.speed))
   end
   
+  if actual_duration < 1 then
+    actual_duration = 0
+  end
+  
   return coroutine.create(function()
     local diff = end_value - start_value
     local stop_watch = wx.wxStopWatch()
@@ -189,6 +193,11 @@ function animate_arm(property_name, start_value, end_value, duration)
   end
   --]]
   
+  if robot_arm.speed >= 1 then
+    arm[property_name] = end_value
+    return
+  end
+  
   local value = animate(start_value, end_value, duration)
   
   loop_non_blocking(function()
@@ -205,15 +214,7 @@ function robot_arm:move_right()
     return
   end
   
-  local position = animate(arm.position, arm.position + 1, max_duration)
-  
-  loop_non_blocking(function()
-    refresh_arm(true)
-    _, arm.position = coroutine.resume(position)
-    refresh_arm(false)
-    
-    return coroutine.status(position) ~= 'dead'
-  end)
+  animate_arm('position', arm.position, arm.position + 1, max_duration)
 end
 
 function robot_arm:move_left()
@@ -221,14 +222,7 @@ function robot_arm:move_left()
     return
   end
   
-  local position = animate(arm.position, arm.position - 1, max_duration)
-  
-  loop_non_blocking(function()
-    _, arm.position = coroutine.resume(position)
-    frame:Refresh()
-    
-    return coroutine.status(position) ~= 'dead'
-  end)
+  animate_arm('position', arm.position, arm.position - 1, max_duration)
 end
 
 function robot_arm:grab()
@@ -264,6 +258,7 @@ function robot_arm:scan()
 end
 
 function robot_arm:wait(ms)
+  --[[
   if type(ms) == 'number' then
     wx.wxMilliSleep(ms)
   else
@@ -271,6 +266,8 @@ function robot_arm:wait(ms)
       wx.wxMilliSleep(1000)
     end
   end
+  --]]
+  frame:Refresh()
 end
 
 frame = wx.wxFrame(

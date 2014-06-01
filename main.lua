@@ -68,3 +68,5 @@ for i = 1, stack_count do
   robot_arm:move_left()
   robot_arm:move_left()
 end
+
+robot_arm:wait()
