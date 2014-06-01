@@ -1,42 +1,70 @@
 require 'robot_arm'
 
 robot_arm.assembly_line = {
-  {  },
+  { 'red', 'green' },
   { 'green' },
   { 'blue', 'white', 'blue' },
-  {},
+  { 'green', 'red', 'blue', 'white', 'green'},
   { 'white' },
-  {},
+  { 'red', 'red', 'blue' },
   {},
   {},
   {},
   {}
 }
 
-robot_arm:drop()
+robot_arm.speed = 1
 
-while true do
-  direction = robot_arm.move_right
+function find_gap()
+  local counter = 0
   
-  if math.random() > 0.5 then
-    direction = robot_arm.move_left
+  while true do
+    robot_arm:grab()
+    
+    if robot_arm:scan() == nil then
+      return counter
+    end
+    
+    robot_arm:drop()
+    robot_arm:move_right()
+    counter = counter + 1
   end
-  
-  for i = 1, math.random(5) do
-    direction(robot_arm)
-  end
-  
+end
+
+function move_stack_right()
+  local counter = 0
   robot_arm:grab()
   
-  direction = robot_arm.move_right
-  
-  if math.random() > 0.5 then
-    direction = robot_arm.move_left
+  while robot_arm:scan() ~= nil do
+    robot_arm:move_right()
+    robot_arm:move_right()
+    robot_arm:drop()
+    robot_arm:move_left()
+    robot_arm:move_left()
+    robot_arm:grab()
+    counter = counter + 1
   end
   
-  for i = 1, math.random(5) do
-    direction(robot_arm)
+  return counter
+end
+
+function move_stack_left(count)
+  for i = 1, count do
+    robot_arm:grab()
+    robot_arm:move_left()
+    robot_arm:drop()
+    robot_arm:move_right()
   end
-  
-  robot_arm:drop()
+end
+
+local stack_count = find_gap()
+
+for i = 1, stack_count do
+  robot_arm:move_left()
+  local stack_size = move_stack_right()
+  robot_arm:move_right()
+  robot_arm:move_right()
+  move_stack_left(stack_size)
+  robot_arm:move_left()
+  robot_arm:move_left()
 end

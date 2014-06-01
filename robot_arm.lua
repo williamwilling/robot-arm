@@ -46,7 +46,7 @@ local arm = {
   level = 0
 }
 
-local delay = 2000
+local max_duration = 2000
 local station_width = 50
 local station_count = 10
 local block_width = 40
@@ -121,20 +121,28 @@ local function paint()
   dc:delete()
 end
 
-robot_arm = {}
-robot_arm.assembly_line = {}
+robot_arm = {
+  speed = 0.5,
+  assembly_line = {}
+}
 
 function animate(start_value, end_value, duration)
+  local actual_duration = duration * 0.5
+  
+  if type(robot_arm.speed) == 'number' then
+    actual_duration = duration * (1 - math.min(1, robot_arm.speed))
+  end
+  
   return coroutine.create(function()
     local diff = end_value - start_value
     local stop_watch = wx.wxStopWatch()
     stop_watch:Start()
     
-    local fraction = 0
+    local fraction = math.min(1, stop_watch:Time() / actual_duration)
     
     while fraction < 1 do
       coroutine.yield(start_value + diff * fraction)
-      fraction = math.min(1, stop_watch:Time() / duration)
+      fraction = math.min(1, stop_watch:Time() / actual_duration)
     end
     
     return end_value
@@ -143,7 +151,7 @@ end
 
 local function loop_non_blocking(func)
   local timer = wx.wxTimer(frame)
-  local frame_time = 33
+  local frame_time = 20
   
   on_timer = function()
     if func() then
@@ -153,7 +161,7 @@ local function loop_non_blocking(func)
       coroutine.resume(main)
     end
   end
-
+  
   timer:Start(frame_time, true)
   coroutine.yield()
 end
@@ -172,6 +180,15 @@ local function refresh_arm(erase_background)
 end
 
 function animate_arm(property_name, start_value, end_value, duration)
+  --[[
+  if duration <= 0 then
+    refresh_arm(true)
+    arm[property_name] = end_value
+    refresh_arm(false)
+    return
+  end
+  --]]
+  
   local value = animate(start_value, end_value, duration)
   
   loop_non_blocking(function()
@@ -188,7 +205,7 @@ function robot_arm:move_right()
     return
   end
   
-  local position = animate(arm.position, arm.position + 1, delay)
+  local position = animate(arm.position, arm.position + 1, max_duration)
   
   loop_non_blocking(function()
     refresh_arm(true)
@@ -204,7 +221,7 @@ function robot_arm:move_left()
     return
   end
   
-  local position = animate(arm.position, arm.position - 1, delay)
+  local position = animate(arm.position, arm.position - 1, max_duration)
   
   loop_non_blocking(function()
     _, arm.position = coroutine.resume(position)
@@ -222,24 +239,24 @@ function robot_arm:grab()
     grab_level = grab_level - 1
   end
   
-  animate_arm('level', 0, grab_level, delay)
+  animate_arm('level', 0, grab_level, max_duration)
   
   arm.holding = stack[#stack]
   stack[#stack] = nil
   
-  animate_arm('level', grab_level, 0, delay)
+  animate_arm('level', grab_level, 0, max_duration)
 end
 
 function robot_arm:drop()
   local stack = robot_arm.assembly_line[arm.position + 1]
   local drop_level = level_count - #stack - 1
   
-  animate_arm('level', 0, drop_level, delay)
+  animate_arm('level', 0, drop_level, max_duration)
   
   table.insert(stack, arm.holding)
   arm.holding = nil
   
-  animate_arm('level', drop_level, 0, delay)
+  animate_arm('level', drop_level, 0, max_duration)
 end
 
 function robot_arm:scan()
