@@ -233,10 +233,16 @@ function robot_arm:grab()
     grab_level = grab_level - 1
   end
   
+  if arm.holding ~= nil then
+    grab_level = grab_level - 1
+  end
+  
   animate_arm('level', 0, grab_level, max_duration)
   
-  arm.holding = stack[#stack]
-  stack[#stack] = nil
+  if arm.holding == nil then
+    arm.holding = stack[#stack]
+    stack[#stack] = nil
+  end
   
   animate_arm('level', grab_level, 0, max_duration)
 end
