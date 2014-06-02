@@ -279,16 +279,25 @@ function robot_arm:scan()
   return arm.holding
 end
 
-function robot_arm:wait(ms)
-  --[[
-  if type(ms) == 'number' then
-    wx.wxMilliSleep(ms)
-  else
-    while true do
-      wx.wxMilliSleep(1000)
+function robot_arm:wait(seconds)
+  if type(seconds) == 'number' then
+    
+    on_timer = function()
+      on_timer = nil
+        
+      local success, result = coroutine.resume(main)
+      
+      if not success then
+        error(result)
+      end
     end
+    
+    local timer = wx.wxTimer(frame)
+    timer:Start(seconds * 1000, true)
   end
-  --]]
+   
+  coroutine.yield()
+  
   frame:Refresh()
 end
 
