@@ -166,7 +166,11 @@ local function loop_non_blocking(func)
       timer:Start(frame_time, true)
     else
       on_timer = nil
-      coroutine.resume(main)
+      success, result = coroutine.resume(main)
+      
+      if not success then
+        error(result)
+      end
     end
   end
   
@@ -206,7 +210,15 @@ function animate_arm(property_name, start_value, end_value, duration)
   
   loop_non_blocking(function()
     refresh_arm(true)
-    _, arm[property_name] = coroutine.resume(value)
+    
+    success, result = coroutine.resume(value)
+    
+    if not success then
+      error(result)
+    else
+      arm[property_name] = result
+    end
+    
     refresh_arm(false)
     
     return coroutine.status(value) ~= 'dead'
@@ -349,12 +361,17 @@ frame = wx.wxFrame(
   wx.wxDEFAULT_FRAME_STYLE)
 
 frame:Show(true)
-frame:Raise()
+--frame:Raise()
 frame:Connect(wx.wxEVT_PAINT, paint)
 
 frame:Connect(wx.wxEVT_ACTIVATE, function()
   frame:Disconnect(wx.wxEVT_ACTIVATE)
-  coroutine.resume(main)
+  
+  success, result = coroutine.resume(main)
+  
+  if not success then
+    error(result)
+  end
 end)
 
 frame:Connect(wx.wxEVT_TIMER, function()
