@@ -291,6 +291,15 @@ local levels = {
   ['exercise 7'] = { {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' }, {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' }, {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' }, {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' }, {}, { 'blue', 'blue', 'blue', 'blue', 'blue', 'blue' } },
   ['exercise 9'] = { { 'blue' }, { 'green', 'green' }, { 'white', 'white', 'white' }, { 'red', 'red', 'red', 'red' } },
   ['exercise 10'] = { { 'green' }, { 'blue' }, { 'white' }, { 'red' }, { 'blue' } },
+  ['exercise 11'] = function()
+    --math.randomseed(os.time())
+    
+    for i  = 1, station_count - 1 do
+      local colors = { 'red', 'green', 'white', 'blue' }
+      local color = colors[math.random(#colors)]
+      robot_arm.assembly_line[i] = { color }
+    end
+  end
 }
 
 levels['exercise 8'] = levels['exercise 5']
@@ -300,6 +309,8 @@ function robot_arm:load_level(name)
   
   if type(level) == 'table' then
     robot_arm.assembly_line = level
+  elseif type(level) == 'function' then
+    level()
   end
   
   for i = 1, station_count do
