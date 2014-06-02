@@ -338,6 +338,7 @@ frame = wx.wxFrame(
   wx.wxDEFAULT_FRAME_STYLE)
 
 frame:Show(true)
+frame:Raise()
 frame:Connect(wx.wxEVT_PAINT, paint)
 
 frame:Connect(wx.wxEVT_ACTIVATE, function()
