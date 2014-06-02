@@ -309,6 +309,26 @@ function robot_arm:load_level(name)
   end
 end
 
+function robot_arm:random_level(column_count)
+  local level = {}
+  
+  for i = 1, station_count do
+    level[i] = {}
+  end
+  
+  for i = 1, column_count or 5 do
+    level[i] = {}
+    
+    for _ = 1, math.random(6) do
+      colors = { 'red', 'green', 'blue', 'white' }
+      color = colors[math.random(4)]
+      table.insert(level[i], color)
+    end
+  end
+  
+  robot_arm.assembly_line = level
+end
+
 frame = wx.wxFrame(
   wx.NULL,
   wx.wxID_ANY,
