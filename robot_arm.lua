@@ -43,7 +43,8 @@ local frame
 
 local arm = {
   position = 0,
-  level = 0
+  level = 0,
+  actions = 0
 }
 
 local max_duration = 2000
@@ -175,6 +176,7 @@ local function loop_non_blocking(func)
   end
   
   timer:Start(frame_time, true)
+  
   coroutine.yield()
 end
 
@@ -189,6 +191,11 @@ local function refresh_arm(erase_background)
   end
   
   frame:Refresh(erase_background, wx.wxRect(left, top, width, height))
+end
+
+local function increase_actions()
+  arm.actions = arm.actions + 1
+  frame:SetTitle('Robot Arm - steps: ' .. arm.actions)
 end
 
 function animate_arm(property_name, start_value, end_value, duration)
@@ -231,6 +238,7 @@ function robot_arm:move_right()
   end
   
   animate_arm('position', arm.position, arm.position + 1, max_duration)
+  increase_actions()
 end
 
 function robot_arm:move_left()
@@ -239,6 +247,7 @@ function robot_arm:move_left()
   end
   
   animate_arm('position', arm.position, arm.position - 1, max_duration)
+  increase_actions()
 end
 
 function robot_arm:grab()
@@ -261,6 +270,7 @@ function robot_arm:grab()
   end
   
   animate_arm('level', grab_level, 0, max_duration)
+  increase_actions()
 end
 
 function robot_arm:drop()
@@ -273,9 +283,11 @@ function robot_arm:drop()
   arm.holding = nil
   
   animate_arm('level', drop_level, 0, max_duration)
+  increase_actions()
 end
 
 function robot_arm:scan()
+  increase_actions()
   return arm.holding
 end
 
@@ -336,7 +348,7 @@ local levels = {
     end
   end,
   ['exercise 14'] = function()
-    for i = 1, station_count do
+    for i = 2, station_count do
       robot_arm.assembly_line[i] = {}
       
       for _ = 1, math.random(3) do
@@ -425,5 +437,9 @@ frame:Connect(wx.wxEVT_TIMER, function()
   end
 end)
 
-wx.wxGetApp():MainLoop()
---os.exit()
+if not wx.wxGetApp():IsMainLoopRunning() then
+  wx.wxGetApp():MainLoop()
+  os.exit()
+else
+  success, result = coroutine.resume(main)
+end
