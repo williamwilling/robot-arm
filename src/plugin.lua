@@ -2,7 +2,7 @@ local api = {
   robot_arm = {
     type = "class",
     description = "A simulation of a robot arm that helps you to learn how to program.",
-    
+
     childs = {
       move_left = {
         type = "method",
@@ -41,7 +41,12 @@ local api = {
       
       speed = {
         type = "value",
-        description = "The speed with which the robot arm moves, ranging from 0 to 1. A speed of 1 means that the robot arm does its job without animating, so will only see the begin situation and the end result."
+        description = "The speed at which the robot arm moves, ranging from 0 to 1. A speed of 1 means that the robot arm does its job without animating, so you will only see the begin situation and the end result. (Speed is used like: robot_arm.speed = 0.5)"
+      },
+    
+      wait = {
+        type = "method",
+        description = "This will let the crane wait for the given number in seconds."
       },
       
       random_level = {
@@ -49,6 +54,13 @@ local api = {
         description = "Places blocks randomly throughout the level. You can specify the number of columns (starting at the left) you want to fill with blocks. Default is 5.",
         args = "(columns: number)",
         returns = "()"
+      },
+   
+      load_level = {
+        type = "method",
+        description = "Loads one of the preconfigured levels.",
+        args = "()",
+        returns = "(string)"
       }
     }
   }
@@ -59,16 +71,15 @@ return {
   description = "A simulation of a robot arm that helps you to learn how to program.",
   author = "William Willing",
   version = 1,
-  
+
   onRegister = function()
     ide:AddAPI("lua", "robot_arm", api)
     table.insert(ide.interpreters.luadeb.api, "robot_arm")
     ReloadLuaAPI()
   end,
-  
+
   onUnRegister = function()
     ide:RemoveAPI("lua", "robot_arm")
-
     for i, v in ipairs(ide.interpreters.luadeb.api) do
       if v == "robot_arm" then
         table.remove(ide.interpreters.luadeb.api, i)
