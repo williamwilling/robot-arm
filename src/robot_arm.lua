@@ -47,6 +47,8 @@ local arm = {
   actions = 0
 }
 
+local min_station = 1
+local max_station = 10
 local max_duration = 2000
 local station_width = 50
 local station_count = 10
@@ -60,10 +62,14 @@ local line_position = arm_height + level_count * block_height
 local function resize()
   local window_width = frame:GetClientSize():GetWidth()
   local window_height = frame:GetClientSize():GetHeight()
+  station_count = max_station - min_station + 1
   
   local heighest = 0
   for i = 1, station_count do
-    heighest = math.max(heighest, #robot_arm.assembly_line[i])
+    local stack = robot_arm.assembly_line[i]
+    if type(stack) == 'table' then
+      heighest = math.max(heighest, #stack)
+    end
   end
   level_count = math.max(8, heighest + 2)
   
@@ -254,7 +260,8 @@ end
 
 function robot_arm:move_right()
   if arm.position >= station_count - 1 then
-    return
+    max_station = max_station + 1
+    resize()
   end
   
   animate_arm('position', arm.position, arm.position + 1, max_duration)
@@ -295,6 +302,11 @@ end
 
 function robot_arm:drop()
   local stack = robot_arm.assembly_line[arm.position + 1]
+  if stack == nil then
+    stack = {}
+    robot_arm.assembly_line[arm.position + 1] = stack
+  end
+  
   local drop_level = level_count - #stack - 1
   
   animate_arm('level', 0, drop_level, max_duration)
