@@ -443,6 +443,80 @@ function robot_arm:random_level(column_count)
   robot_arm.assembly_line = level
 end
 
+function robot_arm:create_level(f, ...)
+  local env = { io = io, math = math, string, table }
+  for k,v in pairs(_G) do
+    if type(v) == 'function' then
+      table.insert(env, k)
+    end
+  end
+  
+  local level = {
+    position = 1,
+    data = {}
+  }
+ 
+  env.drop = function (color, count)
+    level.data[level.position] = level.data[level.position] or {}
+    
+    if type(count) ~= 'number' then
+      count = 1
+    end
+    
+    for _ = 1, count do
+      table.insert(level.data[level.position], color)
+    end
+  end
+  
+  env.red = function (count) env.drop('red', count) end
+  env.blue = function (count) env.drop('blue', count) end
+  env.green = function (count) env.drop('green', count) end
+  env.white = function (count) env.drop('white', count) end
+  
+  env.random = function (count)
+    local colors = { 'red', 'blue', 'green', 'white' }
+    
+    if type(count) ~= 'number' then
+      count = 1
+    end
+    
+    for _ = 1, count do
+      env.drop(colors[math.random(#colors)])
+    end
+  end
+  
+  env.move = function(distance)
+    if type(distance) ~= 'number' then
+      distance = 1
+    end
+    
+    level.position = level.position + math.floor(distance)
+  end
+  
+  env.skip = function(count)
+    if type(count) ~= 'number' then
+      count = 1
+    end
+  
+    if count > 0 then
+      env.move(count + 1)
+    elseif count < 0 then
+      env.move(count - 1)
+    end
+  end
+  
+  setfenv(f, env)
+  f(...)
+  
+  robot_arm.assembly_line = {}
+  for k,v in pairs(level.data) do
+    min_station = math.min(min_station, k)
+    max_station = math.max(max_station, k)
+    
+    robot_arm.assembly_line[k] = v
+  end
+end
+
 frame = wx.wxFrame(
   wx.NULL,
   wx.wxID_ANY,
