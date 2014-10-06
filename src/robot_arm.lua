@@ -83,7 +83,7 @@ local function resize()
 end
 
 local function draw_arm(dc)
-  local mid = (0.5 + arm.position) * station_width
+  local mid = (0.5 + (arm.position - min_station + 1)) * station_width
   local left = mid - block_width / 2 - 1
   local right = mid + block_width / 2
   
@@ -119,7 +119,7 @@ local function draw_assembly_line(dc)
     dc:DrawLine(left, line_position - 5, left, line_position)
     dc:DrawLine(right, line_position - 5, right, line_position)
     
-    local stack = robot_arm.assembly_line[i]
+    local stack = robot_arm.assembly_line[i + min_station - 1]
     if type(stack) == 'table' then
       for level, block in ipairs(stack) do
         local color = wx.wxWHITE_BRUSH
@@ -207,8 +207,8 @@ local function loop_non_blocking(func)
 end
 
 local function refresh_arm(erase_background)
-  local left = arm.position * station_width
-  local width = station_width
+  local left = (arm.position - min_station + 1) * station_width
+  local width = station_width + 1
   local top = 0
   local height = arm_height + arm.level * block_height + hand_height
   
@@ -269,8 +269,9 @@ function robot_arm:move_right()
 end
 
 function robot_arm:move_left()
-  if arm.position <= 0 then
-    return
+  if arm.position + 1 <= min_station then
+    min_station = arm.position
+    resize()
   end
   
   animate_arm('position', arm.position, arm.position - 1, max_duration)
