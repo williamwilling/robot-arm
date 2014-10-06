@@ -259,7 +259,7 @@ function animate_arm(property_name, start_value, end_value, duration)
 end
 
 function robot_arm:move_right()
-  if arm.position >= station_count - 1 then
+  if arm.position >= max_station - 1 then
     max_station = max_station + 1
     resize()
   end
