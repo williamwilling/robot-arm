@@ -63,8 +63,9 @@ local function resize()
   
   station_width = (window_width - 1) / station_count
   block_width = math.floor(station_width * 0.9)
-  block_height = math.floor((window_height - arm_height - 1) / level_count)
+  block_height = (window_height - arm_height - 1) / level_count
   line_position = arm_height + level_count * block_height
+  block_height = math.floor(block_height)
 end
 
 local function draw_arm(dc)
