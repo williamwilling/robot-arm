@@ -26,7 +26,7 @@ The robot arm understands six instructions: `move_left()`, `move_right()`, `grab
 
 Levels
 ------
-Robot Arm comes with a couple of build-in levels. You can use `load_level(name)` to load a build-in level, where *name* is `"exercise 1"`, `"exercise 2"`, `"exercise 3"`, etc. Note that these build-in levels are subject to change.
+Robot Arm comes with a couple of built-in levels. You can use `load_level(name)` to load a build-in level, where *name* is `"exercise 1"`, `"exercise 2"`, `"exercise 3"`, etc. Note that these build-in levels are subject to change.
 
 You can also create a set of random blocks with `random_level()`. 
 
