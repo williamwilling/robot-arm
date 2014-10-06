@@ -72,6 +72,8 @@ local function resize()
   block_height = (window_height - arm_height - 1) / level_count
   line_position = arm_height + level_count * block_height
   block_height = math.floor(block_height)
+  
+  frame:Refresh()
 end
 
 local function draw_arm(dc)
@@ -303,10 +305,7 @@ function robot_arm:drop()
   animate_arm('level', drop_level, 0, max_duration)
   increase_actions()
   
-  if #stack >= level_count - 1 then
-    resize()
-    frame:Refresh()
-  end
+  resize()
 end
 
 function robot_arm:scan()
@@ -462,7 +461,6 @@ end)
 
 frame:Connect(wx.wxEVT_SIZE, function()
   resize()
-  frame:Refresh()
 end)
 
 if not wx.wxGetApp():IsMainLoopRunning() then
