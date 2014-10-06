@@ -57,6 +57,16 @@ local hand_height = 10
 local level_count = 8
 local line_position = arm_height + level_count * block_height
 
+local function resize()
+  local window_width = frame:GetClientSize():GetWidth()
+  local window_height = frame:GetClientSize():GetHeight()
+  
+  station_width = (window_width - 1) / station_count
+  block_width = station_width * 0.9
+  block_height = (window_height - arm_height - 1) / level_count
+  line_position = arm_height + level_count * block_height
+end
+
 local function draw_arm(dc)
   local mid = (0.5 + arm.position) * station_width
   local left = mid - block_width / 2 - 1
@@ -107,8 +117,9 @@ local function draw_assembly_line(dc)
           color = wx.wxBLUE_BRUSH
         end
         
+        local margin = (station_width - block_width) / 2
         dc:SetBrush(color)
-        dc:DrawRectangle(left + 5, line_position - block_height * level, block_width, block_height)
+        dc:DrawRectangle(left + margin, line_position - block_height * level, block_width, block_height)
       end
     end
   end
@@ -435,6 +446,11 @@ frame:Connect(wx.wxEVT_TIMER, function()
   if type(on_timer) == 'function' then
     on_timer()
   end
+end)
+
+frame:Connect(wx.wxEVT_SIZE, function()
+  resize()
+  frame:Refresh()
 end)
 
 if not wx.wxGetApp():IsMainLoopRunning() then
