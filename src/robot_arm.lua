@@ -61,6 +61,12 @@ local function resize()
   local window_width = frame:GetClientSize():GetWidth()
   local window_height = frame:GetClientSize():GetHeight()
   
+  local heighest = 0
+  for i = 1, station_count do
+    heighest = math.max(heighest, #robot_arm.assembly_line[i])
+  end
+  level_count = math.max(8, heighest + 2)
+  
   station_width = (window_width - 1) / station_count
   block_width = math.floor(station_width * 0.9)
   block_height = (window_height - arm_height - 1) / level_count
@@ -296,6 +302,11 @@ function robot_arm:drop()
   
   animate_arm('level', drop_level, 0, max_duration)
   increase_actions()
+  
+  if #stack >= level_count - 1 then
+    resize()
+    frame:Refresh()
+  end
 end
 
 function robot_arm:scan()
