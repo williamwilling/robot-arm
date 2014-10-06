@@ -279,7 +279,7 @@ function robot_arm:move_left()
 end
 
 function robot_arm:grab()
-  local stack = robot_arm.assembly_line[arm.position + 1]
+  local stack = robot_arm.assembly_line[arm.position + 1] or {}
   local grab_level = level_count - #stack
   
   if #stack == 0 then
