@@ -447,7 +447,7 @@ function robot_arm:create_level(f, ...)
   local env = { io = io, math = math, string, table }
   for k,v in pairs(_G) do
     if type(v) == 'function' then
-      table.insert(env, k)
+      env[k] = v
     end
   end
   
