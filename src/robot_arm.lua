@@ -309,6 +309,11 @@ function robot_arm:drop()
   end
   
   local drop_level = level_count - #stack - 1
+  -- fixed 15-09-2014 by Tim
+  if drop_level == 0 then
+    print('Max stack height reached. Max stack height is '.. drop_level + 7 ..' blocks')
+    return false
+  end
   
   animate_arm('level', 0, drop_level, max_duration)
   
